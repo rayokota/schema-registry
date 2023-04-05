@@ -33,21 +33,13 @@ public class RuleSetHandler {
   }
 
   public void handle(String subject, ConfigUpdateRequest request) {
-    if (request.getDefaultRuleSet() != null || request.getOverrideRuleSet() != null) {
-      log.warn("RuleSets are only supported by Confluent Enterprise and Confluent Cloud");
-      request.setDefaultRuleSet(null);
-      request.setOverrideRuleSet(null);
-    }
   }
 
   public void handle(String subject, boolean normalize, RegisterSchemaRequest request) {
-    if (request.getRuleSet() != null) {
-      log.warn("RuleSets are only supported by Confluent Enterprise and Confluent Cloud");
-      request.setRuleSet(null);
-    }
   }
 
   public RuleSet transform(io.confluent.kafka.schemaregistry.client.rest.entities.RuleSet ruleSet) {
-    return null;
+    return ruleSet != null ? new RuleSet(ruleSet) : null;
+
   }
 }

@@ -29,6 +29,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.DynamicMessage;
@@ -36,6 +37,7 @@ import io.confluent.kafka.schemaregistry.avro.AvroSchema;
 import io.confluent.kafka.schemaregistry.avro.AvroSchemaProvider;
 import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
+import io.confluent.kafka.schemaregistry.client.rest.entities.Metadata;
 import io.confluent.kafka.schemaregistry.client.rest.entities.Rule;
 import io.confluent.kafka.schemaregistry.client.rest.entities.RuleKind;
 import io.confluent.kafka.schemaregistry.client.rest.entities.RuleMode;
@@ -57,12 +59,14 @@ import io.confluent.kafka.serializers.json.KafkaJsonSchemaDeserializer;
 import io.confluent.kafka.serializers.json.KafkaJsonSchemaSerializer;
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer;
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufSerializer;
+import io.confluent.protobuf.MetaProto.Meta;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import org.apache.avro.Schema;
@@ -74,8 +78,10 @@ import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.errors.SerializationException;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.projectnessie.cel.parser.MacroExpander;
 
 public class CelExecutorTest {
 
@@ -117,8 +123,14 @@ public class CelExecutorTest {
         DlqAction.class.getName());
     defaultConfig.put(AbstractKafkaSchemaSerDeConfig.RULE_ACTIONS + ".dlq.param." + DlqAction.TOPIC,
         "dlq-topic");
-    defaultConfig.put(AbstractKafkaSchemaSerDeConfig.RULE_ACTIONS + ".dlq.param." + DlqAction.PRODUCER,
-        producer);
+    defaultConfig.put(AbstractKafkaSchemaSerDeConfig.RULE_ACTIONS + ".dlq.param.bootstrap.servers",
+        "localhost:9092");
+    defaultConfig.put(AbstractKafkaSchemaSerDeConfig.RULE_ACTIONS + ".dlq.param.ssl.endpoint.identification.algorithm",
+        "https");
+    defaultConfig.put(AbstractKafkaSchemaSerDeConfig.RULE_ACTIONS + ".dlq.param.key.serializer",
+        ByteArraySerializer.class.getName());
+    defaultConfig.put(AbstractKafkaSchemaSerDeConfig.RULE_ACTIONS + ".dlq.param.value.serializer",
+        ByteArraySerializer.class.getName());
     avroSerializer = new KafkaAvroSerializer(schemaRegistry, defaultConfig);
     avroDeserializer = new KafkaAvroDeserializer(schemaRegistry, defaultConfig);
     avroKeySerializer = new KafkaAvroSerializer(schemaRegistry);
@@ -182,8 +194,10 @@ public class CelExecutorTest {
         + "{\"name\": \"piiArray\", \"type\": { \"type\": \"array\", \"items\": { \"type\": \"record\", \"name\":\"OldPii\", \"fields\":\n"
         + "[{\"name\": \"pii\", \"type\": \"string\",\"confluent:tags\": [\"PII\"]}]}}},\n"
         + "{\"name\": \"piiMap\", \"type\": { \"type\": \"map\", \"values\": \"OldPii\"},\n"
-        + "\"confluent:tags\": [\"PII\"]},\n"
-        + "{\"name\": \"size\", \"type\": \"int\"},{\"name\": \"version\", \"type\": \"int\"}]}";
+        + "\"confluent:tags\": [\"PII\"]}\n"
+        //+ "\"confluent:tags\": [\"PII\"]},\n"
+        //+ "{\"name\": \"size\", \"type\": \"int\"},{\"name\": \"version\", \"type\": \"int\"}"
+        + "]}";
     Schema.Parser parser = new Schema.Parser();
     Schema schema = parser.parse(userSchema);
     return schema;
@@ -206,7 +220,10 @@ public class CelExecutorTest {
     IndexedRecord avroRecord = createUserRecord();
     AvroSchema avroSchema = new AvroSchema(avroRecord.getSchema());
     Rule rule = new Rule("myRule", null, RuleKind.CONDITION, RuleMode.READ,
-        CelExecutor.TYPE, null, null, "message.name == \"testUser\" && message.kind == \"ONE\"",
+        CelExecutor.TYPE, null, null,
+        "message.name.matches(\"#\\\\d+ ([^,]+), ([A-Z]{2}) (\\\\d{5})\")",
+        //"message.address.matches(\"\\d+ ([^,]+), ([A-Z]{2}) (\\d{5})\")",
+        //"'hi'.matches(r'hi\\d')",
         null, null, false);
     RuleSet ruleSet = new RuleSet(Collections.emptyList(), Collections.singletonList(rule));
     avroSchema = avroSchema.copy(null, ruleSet);
@@ -335,10 +352,13 @@ public class CelExecutorTest {
     Schema schema = createWidgetSchema();
     AvroSchema avroSchema = new AvroSchema(schema);
     Rule rule = new Rule("myRule", null, RuleKind.TRANSFORM, RuleMode.WRITE,
-        CelFieldExecutor.TYPE, ImmutableSortedSet.of("PII"), null, "value + \"-suffix\"",
+        //CelFieldExecutor.TYPE, ImmutableSortedSet.of("ALL"), null, "name == 'name' && value == 'alice' ? value + \"-suffix\" : 'alice'",
+        CelFieldExecutor.TYPE, ImmutableSortedSet.of("ALL"), null, "value + \"-suffix\"",
         null, null, false);
+    Map<String, Set<String>> tags = ImmutableMap.of("**", ImmutableSet.of("ALL"));
+    Metadata metadata = new Metadata(tags, null, null);
     RuleSet ruleSet = new RuleSet(Collections.emptyList(), Collections.singletonList(rule));
-    avroSchema = avroSchema.copy(null, ruleSet);
+    avroSchema = avroSchema.copy(metadata, ruleSet);
     schemaRegistry.register(topic + "-value", avroSchema);
 
     bytes = reflectionAvroSerializer.serialize(topic, widget);
