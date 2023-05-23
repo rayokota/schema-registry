@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;
+import io.confluent.kafka.schemaregistry.client.SchemaMetadata;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClientConfig;
 import io.confluent.kafka.schemaregistry.client.rest.entities.Config;
 import io.confluent.kafka.schemaregistry.client.rest.entities.ErrorMessage;
@@ -545,20 +546,20 @@ public class RestService implements Configurable {
     request.setReferences(references);
     request.setVersion(version);
     request.setId(id);
-    return registerSchema(request, subject, normalize);
+    return registerSchema(request, subject, normalize).getId();
   }
 
-  public int registerSchema(RegisterSchemaRequest registerSchemaRequest,
-                            String subject,
-                            boolean normalize)
+  public RegisterSchemaResponse registerSchema(RegisterSchemaRequest registerSchemaRequest,
+                                               String subject,
+                                               boolean normalize)
       throws IOException, RestClientException {
     return registerSchema(DEFAULT_REQUEST_PROPERTIES, registerSchemaRequest, subject, normalize);
   }
 
-  public int registerSchema(Map<String, String> requestProperties,
-                            RegisterSchemaRequest registerSchemaRequest,
-                            String subject,
-                            boolean normalize)
+  public RegisterSchemaResponse registerSchema(Map<String, String> requestProperties,
+                                               RegisterSchemaRequest registerSchemaRequest,
+                                               String subject,
+                                               boolean normalize)
       throws IOException, RestClientException {
     UriBuilder builder = UriBuilder.fromPath("/subjects/{subject}/versions")
         .queryParam("normalize", normalize);
@@ -570,7 +571,7 @@ public class RestService implements Configurable {
         requestProperties,
         REGISTER_RESPONSE_TYPE);
 
-    return response.getId();
+    return response;
   }
 
   public List<String> testCompatibility(String schemaString, String subject, boolean verbose)
