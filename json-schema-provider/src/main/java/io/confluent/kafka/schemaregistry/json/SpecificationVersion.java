@@ -24,7 +24,8 @@ public enum SpecificationVersion {
   DRAFT_4,
   DRAFT_6,
   DRAFT_7,
-  DRAFT_2019_09;
+  DRAFT_2019_09,
+  DRAFT_2020_12;
 
   private static final Map<String, SpecificationVersion> lookup = new HashMap<>();
 

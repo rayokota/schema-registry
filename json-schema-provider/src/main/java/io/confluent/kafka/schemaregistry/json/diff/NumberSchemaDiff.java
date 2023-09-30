@@ -15,6 +15,7 @@
 
 package io.confluent.kafka.schemaregistry.json.diff;
 
+import java.math.BigDecimal;
 import org.everit.json.schema.NumberSchema;
 
 import java.util.Objects;
@@ -97,17 +98,25 @@ class NumberSchemaDiff {
         ctx.addDifference("exclusiveMinimum", EXCLUSIVE_MINIMUM_DECREASED);
       }
     }
-    if (!Objects.equals(original.getMultipleOf(), update.getMultipleOf())) {
-      if (original.getMultipleOf() == null && update.getMultipleOf() != null) {
+    BigDecimal updateMultipleOf = update.getMultipleOf() != null
+        ? new BigDecimal(update.getMultipleOf().toString())
+        : null;
+    BigDecimal originalMultipleOf = original.getMultipleOf() != null
+        ? new BigDecimal(original.getMultipleOf().toString())
+        : null;
+    if (!Objects.equals(originalMultipleOf, updateMultipleOf)) {
+      if (originalMultipleOf == null && updateMultipleOf != null) {
         ctx.addDifference("multipleOf", MULTIPLE_OF_ADDED);
-      } else if (original.getMultipleOf() != null && update.getMultipleOf() == null) {
+      } else if (originalMultipleOf != null && updateMultipleOf == null) {
         ctx.addDifference("multipleOf", MULTIPLE_OF_REMOVED);
-      } else if (update.getMultipleOf().intValue() % original.getMultipleOf().intValue() == 0) {
-        ctx.addDifference("multipleOf", MULTIPLE_OF_EXPANDED);
-      } else if (original.getMultipleOf().intValue() % update.getMultipleOf().intValue() == 0) {
-        ctx.addDifference("multipleOf", MULTIPLE_OF_REDUCED);
       } else {
-        ctx.addDifference("multipleOf", MULTIPLE_OF_CHANGED);
+        if (updateMultipleOf.remainder(originalMultipleOf).signum() == 0) {
+          ctx.addDifference("multipleOf", MULTIPLE_OF_EXPANDED);
+        } else if (originalMultipleOf.remainder(updateMultipleOf).signum() == 0) {
+          ctx.addDifference("multipleOf", MULTIPLE_OF_REDUCED);
+        } else {
+          ctx.addDifference("multipleOf", MULTIPLE_OF_CHANGED);
+        }
       }
     }
     if (original.requiresInteger() != update.requiresInteger()) {
