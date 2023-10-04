@@ -287,7 +287,7 @@ public class SchemaTranslator extends SchemaVisitor<SchemaTranslator.SchemaConte
 
   @Override
   public SchemaContext visitDynamicRefSchema(DynamicRefSchema schema) {
-    // TODO dynamic refs
+    // ignore dynamic refs
     return super.visitDynamicRefSchema(schema);
   }
 
@@ -320,7 +320,7 @@ public class SchemaTranslator extends SchemaVisitor<SchemaTranslator.SchemaConte
 
   @Override
   public SchemaContext visitFormatSchema(FormatSchema schema) {
-    // TODO formats
+    // ignore formats
     return super.visitFormatSchema(schema);
   }
 
@@ -522,15 +522,21 @@ public class SchemaTranslator extends SchemaVisitor<SchemaTranslator.SchemaConte
   @Override
   public SchemaContext visitUnevaluatedItemsSchema(
       UnevaluatedItemsSchema schema) {
-    // TODO unevaluatedItems
-    return super.visitUnevaluatedItemsSchema(schema);
+    SchemaContext ctx = super.visitUnevaluatedItemsSchema(schema);
+    assert ctx != null;
+    ArraySchema.Builder builder = ArraySchema.builder().requiresArray(false);
+    builder.unprocessedProperties(Collections.singletonMap("unevaluatedItems", ctx.schema()));
+    return new SchemaContext(schema, builder);
   }
 
   @Override
   public SchemaContext visitUnevaluatedPropertiesSchema(
       UnevaluatedPropertiesSchema schema) {
-    // TODO unevaluatedProperties
-    return super.visitUnevaluatedPropertiesSchema(schema);
+    SchemaContext ctx = super.visitUnevaluatedPropertiesSchema(schema);
+    assert ctx != null;
+    ObjectSchema.Builder builder = ObjectSchema.builder().requiresObject(false);
+    builder.unprocessedProperties(Collections.singletonMap("unevaluatedProperties", ctx.schema()));
+    return new SchemaContext(schema, builder);
   }
 
   @Override
