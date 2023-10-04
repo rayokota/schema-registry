@@ -105,9 +105,9 @@ class NumberSchemaDiff {
         ? new BigDecimal(original.getMultipleOf().toString())
         : null;
     if (!Objects.equals(originalMultipleOf, updateMultipleOf)) {
-      if (originalMultipleOf == null && updateMultipleOf != null) {
+      if (originalMultipleOf == null) {
         ctx.addDifference("multipleOf", MULTIPLE_OF_ADDED);
-      } else if (originalMultipleOf != null && updateMultipleOf == null) {
+      } else if (updateMultipleOf == null) {
         ctx.addDifference("multipleOf", MULTIPLE_OF_REMOVED);
       } else {
         if (updateMultipleOf.remainder(originalMultipleOf).signum() == 0) {

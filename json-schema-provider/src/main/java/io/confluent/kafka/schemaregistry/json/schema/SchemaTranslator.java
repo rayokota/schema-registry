@@ -148,6 +148,7 @@ public class SchemaTranslator extends SchemaVisitor<SchemaTranslator.SchemaConte
   public SchemaContext visitAdditionalPropertiesSchema(
       AdditionalPropertiesSchema schema) {
     SchemaContext ctx = super.visitAdditionalPropertiesSchema(schema);
+    assert ctx != null;
     ObjectSchema.Builder builder = ObjectSchema.builder().requiresObject(false);
     if (ctx.schemaBuilder() instanceof org.everit.json.schema.FalseSchema.Builder) {
       builder.additionalProperties(false);
@@ -179,6 +180,10 @@ public class SchemaTranslator extends SchemaVisitor<SchemaTranslator.SchemaConte
   @Override
   public SchemaContext visitCompositeSchema(CompositeSchema schema) {
     SchemaContext ctx = super.visitCompositeSchema(schema);
+    if (ctx == null) {
+      return new SchemaContext(
+          schema, CombinedSchema.allOf(Collections.emptyList()).isSynthetic(true));
+    }
     org.everit.json.schema.Schema ctxSchema = ctx.schema();
     if (ctxSchema instanceof CombinedSchema) {
       CombinedSchema combinedSchema = (CombinedSchema) ctxSchema;
@@ -252,6 +257,7 @@ public class SchemaTranslator extends SchemaVisitor<SchemaTranslator.SchemaConte
   @Override
   public SchemaContext visitContainsSchema(ContainsSchema schema) {
     SchemaContext ctx = super.visitContainsSchema(schema);
+    assert ctx != null;
     return new SchemaContext(schema, ArraySchema.builder().requiresArray(false)
         .containsItemSchema(ctx.schema()));
   }
@@ -272,7 +278,9 @@ public class SchemaTranslator extends SchemaVisitor<SchemaTranslator.SchemaConte
   public SchemaContext visitDependentSchemas(DependentSchemasSchema schema) {
     ObjectSchema.Builder builder = ObjectSchema.builder().requiresObject(false);
     for (Map.Entry<String, Schema> entry : schema.getDependentSchemas().entrySet()) {
-      builder.schemaDependency(entry.getKey(), entry.getValue().accept(this).schema());
+      SchemaContext ctx = entry.getValue().accept(this);
+      assert ctx != null;
+      builder.schemaDependency(entry.getKey(), ctx.schema());
     }
     return new SchemaContext(schema, builder);
   }
@@ -320,15 +328,21 @@ public class SchemaTranslator extends SchemaVisitor<SchemaTranslator.SchemaConte
   public SchemaContext visitIfThenElseSchema(IfThenElseSchema schema) {
     org.everit.json.schema.Schema ifSchema = null;
     if (schema.getIfSchema() != null) {
-      ifSchema = schema.getIfSchema().accept(this).schema();
+      SchemaContext ctx = schema.getIfSchema().accept(this);
+      assert ctx != null;
+      ifSchema = ctx.schema();
     }
     org.everit.json.schema.Schema thenSchema = null;
     if (schema.getThenSchema() != null) {
-      thenSchema = schema.getThenSchema().accept(this).schema();
+      SchemaContext ctx = schema.getThenSchema().accept(this);
+      assert ctx != null;
+      thenSchema = ctx.schema();
     }
     org.everit.json.schema.Schema elseSchema = null;
     if (schema.getElseSchema() != null) {
-      elseSchema = schema.getElseSchema().accept(this).schema();
+      SchemaContext ctx = schema.getElseSchema().accept(this);
+      assert ctx != null;
+      elseSchema = ctx.schema();
     }
     return new SchemaContext(schema, ConditionalSchema.builder()
         .ifSchema(ifSchema)
@@ -339,6 +353,7 @@ public class SchemaTranslator extends SchemaVisitor<SchemaTranslator.SchemaConte
   @Override
   public SchemaContext visitItemsSchema(ItemsSchema schema) {
     SchemaContext ctx = super.visitItemsSchema(schema);
+    assert ctx != null;
     ArraySchema.Builder builder = ArraySchema.builder().requiresArray(false);
     if (schema.getPrefixItemCount() == 0) {
       builder.allItemSchema(ctx.schema());
@@ -417,6 +432,7 @@ public class SchemaTranslator extends SchemaVisitor<SchemaTranslator.SchemaConte
   @Override
   public SchemaContext visitNotSchema(NotSchema schema) {
     SchemaContext ctx = super.visitNotSchema(schema);
+    assert ctx != null;
     return new SchemaContext(schema, org.everit.json.schema.NotSchema.builder()
         .mustNotMatch(ctx.schema()));
   }
@@ -429,8 +445,10 @@ public class SchemaTranslator extends SchemaVisitor<SchemaTranslator.SchemaConte
   @Override
   public SchemaContext visitPatternPropertySchema(Regexp pattern,
       Schema schema) {
+    SchemaContext ctx = schema.accept(this);
+    assert ctx != null;
     return new SchemaContext(schema, ObjectSchema.builder().requiresObject(false)
-        .patternProperty(pattern.toString(), schema.accept(this).schema()));
+        .patternProperty(pattern.toString(), ctx.schema()));
   }
 
   @Override
@@ -443,7 +461,9 @@ public class SchemaTranslator extends SchemaVisitor<SchemaTranslator.SchemaConte
   public SchemaContext visitPrefixItemsSchema(PrefixItemsSchema schema) {
     ArraySchema.Builder builder = ArraySchema.builder().requiresArray(false);
     for (Schema s : schema.getPrefixSchemas()) {
-      builder.addItemSchema(s.accept(this).schema());
+      SchemaContext ctx = s.accept(this);
+      assert ctx != null;
+      builder.addItemSchema(ctx.schema());
     }
     return new SchemaContext(schema, builder);
   }
@@ -452,6 +472,7 @@ public class SchemaTranslator extends SchemaVisitor<SchemaTranslator.SchemaConte
   public SchemaContext visitPropertyNamesSchema(
       PropertyNamesSchema propertyNamesSchema) {
     SchemaContext ctx = super.visitPropertyNamesSchema(propertyNamesSchema);
+    assert ctx != null;
     return new SchemaContext(propertyNamesSchema, ObjectSchema.builder().requiresObject(false)
         .propertyNameSchema(ctx.schema()));
   }
@@ -459,8 +480,10 @@ public class SchemaTranslator extends SchemaVisitor<SchemaTranslator.SchemaConte
   @Override
   public SchemaContext visitPropertySchema(String property,
       Schema schema) {
+    SchemaContext ctx = schema.accept(this);
+    assert ctx != null;
     return new SchemaContext(schema, ObjectSchema.builder().requiresObject(false)
-        .addPropertySchema(property, schema.accept(this).schema()));
+        .addPropertySchema(property, ctx.schema()));
   }
 
   @Override
@@ -712,6 +735,8 @@ public class SchemaTranslator extends SchemaVisitor<SchemaTranslator.SchemaConte
           refSchema.setReferredSchema(referredSchema.build());
         } else {
           SchemaContext ctx = oldReferredSchema.accept(SchemaTranslator.this);
+          assert ctx != null;
+          ctx.close();
           refSchema.setReferredSchema(ctx.schema());
         }
       }

@@ -368,6 +368,7 @@ public class JsonSchema implements ParsedSchema {
     JsonValue schemaJson = objectMapper.convertValue(jsonNode, JsonObject.class);
     skemaObj = new com.github.erosb.jsonsKema.SchemaLoader(schemaJson, config).load();
     SchemaTranslator.SchemaContext ctx = skemaObj.accept(new SchemaTranslator());
+    assert ctx != null;
     ctx.close();
     schemaObj = ctx.schema();
   }
@@ -1036,14 +1037,13 @@ public class JsonSchema implements ParsedSchema {
 
     @Override
     public IJsonValue getParsed(URI uri) {
-      BufferedReader reader = new BufferedReader(new InputStreamReader(get(uri)));
-      String string = reader.lines().collect(Collectors.joining());
-      try {
+      try (BufferedReader reader = new BufferedReader(
+          new InputStreamReader(get(uri), StandardCharsets.UTF_8))) {
+        String string = reader.lines().collect(Collectors.joining());
         return new JsonParser(string, uri).parse();
-      } catch (JsonParseException ex) {
+      } catch (Exception ex) {
         throw new SchemaLoadingException("failed to parse json content returned from $uri", ex);
       }
     }
   }
-
 }
