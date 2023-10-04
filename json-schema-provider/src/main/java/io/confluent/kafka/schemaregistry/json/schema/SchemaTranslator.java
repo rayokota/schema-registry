@@ -188,7 +188,7 @@ public class SchemaTranslator extends SchemaVisitor<SchemaTranslator.SchemaConte
     if (ctxSchema instanceof CombinedSchema) {
       CombinedSchema combinedSchema = (CombinedSchema) ctxSchema;
       if (combinedSchema.getCriterion() == CombinedSchema.ALL_CRITERION
-        && isSynthetic(combinedSchema)) {
+          && isSynthetic(combinedSchema)) {
         if (combinedSchema.getSubschemas().isEmpty()) {
           ctx = new SchemaContext(ctx.source(), EmptySchema.builder());
         } else if (combinedSchema.getSubschemas().size() == 1) {

@@ -96,6 +96,62 @@ public class SchemaUtils {
     return merge(ArraySchema.builder().requiresArray(false), s);
   }
 
+  public static BooleanSchema.Builder toBuilder(BooleanSchema s) {
+    return merge(BooleanSchema.builder(), s);
+  }
+
+  public static CombinedSchema.Builder toBuilder(CombinedSchema s) {
+    return merge(CombinedSchema.builder(), s);
+  }
+
+  public static ConditionalSchema.Builder toBuilder(ConditionalSchema s) {
+    return merge(ConditionalSchema.builder(), s);
+  }
+
+  public static ConstSchemaBuilder toBuilder(ConstSchema s) {
+    return merge(ConstSchema.builder(), s);
+  }
+
+  public static EmptySchema.Builder toBuilder(EmptySchema s) {
+    return merge(EmptySchema.builder(), s);
+  }
+
+  public static EnumSchema.Builder toBuilder(EnumSchema s) {
+    return merge(EnumSchema.builder(), s);
+  }
+
+  public static FalseSchema.Builder toBuilder(FalseSchema s) {
+    return merge(FalseSchema.builder(), s);
+  }
+
+  public static NotSchema.Builder toBuilder(NotSchema s) {
+    return merge(NotSchema.builder(), s);
+  }
+
+  public static NullSchema.Builder toBuilder(NullSchema s) {
+    return merge(NullSchema.builder(), s);
+  }
+
+  public static NumberSchema.Builder toBuilder(NumberSchema s) {
+    return merge(NumberSchema.builder().requiresNumber(false), s);
+  }
+
+  public static ObjectSchema.Builder toBuilder(ObjectSchema s) {
+    return merge(ObjectSchema.builder().requiresObject(false), s);
+  }
+
+  public static ReferenceSchema.Builder toBuilder(ReferenceSchema s) {
+    return merge(ReferenceSchema.builder(), s);
+  }
+
+  public static StringSchema.Builder toBuilder(StringSchema s) {
+    return merge(StringSchema.builder().requiresString(false), s);
+  }
+
+  public static TrueSchema.Builder toBuilder(TrueSchema s) {
+    return merge(TrueSchema.builder(), s);
+  }
+
   public static ArraySchema.Builder merge(ArraySchema.Builder builder, ArraySchema s) {
     copyGenericAttrs(builder, s);
     if (s.requiresArray()) {
@@ -130,16 +186,9 @@ public class SchemaUtils {
     return builder;
   }
 
-  public static BooleanSchema.Builder toBuilder(BooleanSchema s) {
-    return merge(BooleanSchema.builder(), s);
-  }
   public static BooleanSchema.Builder merge(BooleanSchema.Builder builder, BooleanSchema s) {
     copyGenericAttrs(builder, s);
     return builder;
-  }
-
-  public static CombinedSchema.Builder toBuilder(CombinedSchema s) {
-    return merge(CombinedSchema.builder(), s);
   }
 
   public static CombinedSchema.Builder merge(CombinedSchema.Builder builder, CombinedSchema s) {
@@ -150,11 +199,8 @@ public class SchemaUtils {
     return builder;
   }
 
-  public static ConditionalSchema.Builder toBuilder(ConditionalSchema s) {
-    return merge(ConditionalSchema.builder(), s);
-  }
-
-  public static ConditionalSchema.Builder merge(ConditionalSchema.Builder builder, ConditionalSchema s) {
+  public static ConditionalSchema.Builder merge(
+      ConditionalSchema.Builder builder, ConditionalSchema s) {
     copyGenericAttrs(builder, s);
     if (s.getIfSchema().isPresent()) {
       builder.ifSchema(s.getIfSchema().get());
@@ -168,10 +214,6 @@ public class SchemaUtils {
     return builder;
   }
 
-  public static ConstSchemaBuilder toBuilder(ConstSchema s) {
-    return merge(ConstSchema.builder(), s);
-  }
-
   public static ConstSchemaBuilder merge(ConstSchemaBuilder builder, ConstSchema s) {
     copyGenericAttrs(builder, s);
     if (s.getPermittedValue() != null) {
@@ -180,17 +222,9 @@ public class SchemaUtils {
     return builder;
   }
 
-  public static EmptySchema.Builder toBuilder(EmptySchema s) {
-    return merge(EmptySchema.builder(), s);
-  }
-
   public static EmptySchema.Builder merge(EmptySchema.Builder builder, EmptySchema s) {
     copyGenericAttrs(builder, s);
     return builder;
-  }
-
-  public static EnumSchema.Builder toBuilder(EnumSchema s) {
-    return merge(EnumSchema.builder(), s);
   }
 
   public static EnumSchema.Builder merge(EnumSchema.Builder builder, EnumSchema s) {
@@ -201,17 +235,9 @@ public class SchemaUtils {
     return builder;
   }
 
-  public static FalseSchema.Builder toBuilder(FalseSchema s) {
-    return merge(FalseSchema.builder(), s);
-  }
-
   public static FalseSchema.Builder merge(FalseSchema.Builder builder, FalseSchema s) {
     copyGenericAttrs(builder, s);
     return builder;
-  }
-
-  public static NotSchema.Builder toBuilder(NotSchema s) {
-    return merge(NotSchema.builder(), s);
   }
 
   public static NotSchema.Builder merge(NotSchema.Builder builder, NotSchema s) {
@@ -222,17 +248,9 @@ public class SchemaUtils {
     return builder;
   }
 
-  public static NullSchema.Builder toBuilder(NullSchema s) {
-    return merge(NullSchema.builder(), s);
-  }
-
   public static NullSchema.Builder merge(NullSchema.Builder builder, NullSchema s) {
     copyGenericAttrs(builder, s);
     return builder;
-  }
-
-  public static NumberSchema.Builder toBuilder(NumberSchema s) {
-    return merge(NumberSchema.builder().requiresNumber(false), s);
   }
 
   public static NumberSchema.Builder merge(NumberSchema.Builder builder, NumberSchema s) {
@@ -259,10 +277,6 @@ public class SchemaUtils {
       builder.requiresInteger(true);
     }
     return builder;
-  }
-
-  public static ObjectSchema.Builder toBuilder(ObjectSchema s) {
-    return merge(ObjectSchema.builder().requiresObject(false), s);
   }
 
   public static ObjectSchema.Builder merge(ObjectSchema.Builder builder, ObjectSchema s) {
@@ -315,20 +329,12 @@ public class SchemaUtils {
     return builder;
   }
 
-  public static ReferenceSchema.Builder toBuilder(ReferenceSchema s) {
-    return merge(ReferenceSchema.builder(), s);
-  }
-
   public static ReferenceSchema.Builder merge(ReferenceSchema.Builder builder, ReferenceSchema s) {
     copyGenericAttrs(builder, s);
     if (s.getReferenceValue() != null) {
       builder.refValue(s.getReferenceValue());
     }
     return builder;
-  }
-
-  public static StringSchema.Builder toBuilder(StringSchema s) {
-    return merge(StringSchema.builder().requiresString(false), s);
   }
 
   public static StringSchema.Builder merge(StringSchema.Builder builder, StringSchema s) {
@@ -349,10 +355,6 @@ public class SchemaUtils {
       builder.formatValidator(s.getFormatValidator());
     }
     return builder;
-  }
-
-  public static TrueSchema.Builder toBuilder(TrueSchema s) {
-    return merge(TrueSchema.builder(), s);
   }
 
   public static TrueSchema.Builder merge(TrueSchema.Builder builder, TrueSchema s) {

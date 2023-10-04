@@ -41,7 +41,6 @@ import com.github.erosb.jsonsKema.JsonBoolean;
 import com.github.erosb.jsonsKema.JsonNull;
 import com.github.erosb.jsonsKema.JsonNumber;
 import com.github.erosb.jsonsKema.JsonObject;
-import com.github.erosb.jsonsKema.JsonParseException;
 import com.github.erosb.jsonsKema.JsonParser;
 import com.github.erosb.jsonsKema.JsonString;
 import com.github.erosb.jsonsKema.JsonValue;
