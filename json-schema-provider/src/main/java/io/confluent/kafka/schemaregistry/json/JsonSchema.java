@@ -325,8 +325,9 @@ public class JsonSchema implements ParsedSchema {
           SpecificationVersion spec = SpecificationVersion.DRAFT_7;
           if (jsonNode.has(SCHEMA_KEYWORD)) {
             String schema = jsonNode.get(SCHEMA_KEYWORD).asText();
-            if (SpecificationVersion.get(schema) != null) {
-              spec = SpecificationVersion.get(schema);
+            SpecificationVersion s = SpecificationVersion.getFromUrl(schema);
+            if (s != null) {
+              spec = s;
             }
           }
           switch (spec) {
@@ -339,8 +340,8 @@ public class JsonSchema implements ParsedSchema {
               break;
           }
         }
-      } catch (Exception e) {
-        throw new IllegalArgumentException("Invalid JSON", e);
+      } catch (Throwable e) {
+        throw new IllegalArgumentException("Invalid JSON Schema", e);
       }
     }
     return schemaObj;

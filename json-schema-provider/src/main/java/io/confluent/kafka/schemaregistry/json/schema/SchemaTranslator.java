@@ -152,7 +152,7 @@ public class SchemaTranslator extends SchemaVisitor<SchemaTranslator.SchemaConte
     ObjectSchema.Builder builder = ObjectSchema.builder().requiresObject(false);
     if (ctx.schemaBuilder() instanceof org.everit.json.schema.FalseSchema.Builder) {
       builder.additionalProperties(false);
-    } else {
+    } else if (!(ctx.schemaBuilder() instanceof org.everit.json.schema.TrueSchema.Builder)) {
       builder.schemaOfAdditionalProperties(ctx.schema());
     }
     return new SchemaContext(schema, builder);
@@ -356,11 +356,15 @@ public class SchemaTranslator extends SchemaVisitor<SchemaTranslator.SchemaConte
     assert ctx != null;
     ArraySchema.Builder builder = ArraySchema.builder().requiresArray(false);
     if (schema.getPrefixItemCount() == 0) {
-      builder.allItemSchema(ctx.schema());
+      if (ctx.schemaBuilder() instanceof org.everit.json.schema.FalseSchema.Builder) {
+        builder.additionalItems(false);
+      } else if (!(ctx.schemaBuilder() instanceof org.everit.json.schema.TrueSchema.Builder)) {
+        builder.allItemSchema(ctx.schema());
+      }
     } else {
       if (ctx.schemaBuilder() instanceof org.everit.json.schema.FalseSchema.Builder) {
         builder.additionalItems(false);
-      } else {
+      } else if (!(ctx.schemaBuilder() instanceof org.everit.json.schema.TrueSchema.Builder)) {
         builder.schemaOfAdditionalItems(ctx.schema());
       }
     }

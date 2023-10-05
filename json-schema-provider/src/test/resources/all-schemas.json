@@ -51,7 +51,7 @@
   },
   {
     "target_schema": {
-      "items": false
+      "additionalItems": false
     },
     "source_schema": {
       "items": false
@@ -1102,7 +1102,6 @@
   },
   {
     "target_schema": {
-      "items": true
     },
     "source_schema": {
       "items": true
@@ -1112,7 +1111,7 @@
   },
   {
     "target_schema": {
-      "items": false
+      "additionalItems": false
     },
     "source_schema": {
       "items": false
