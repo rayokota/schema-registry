@@ -215,18 +215,6 @@ public class SchemaTranslator extends SchemaVisitor<SchemaTranslator.SchemaConte
       ctx.schemaBuilder().defaultValue(schema.getDefault().accept(new JsonValueVisitor()));
     }
     Map<String, Object> unprocessed = new HashMap<>();
-    if (!schema.getDefinedSubschemas().isEmpty()) {
-      Map<String, org.everit.json.schema.Schema> defs = new HashMap<>();
-      for (Map.Entry<String, Schema> entry :
-          schema.getDefinedSubschemas().entrySet()) {
-        String defName = entry.getKey();
-        Schema subschema = entry.getValue();
-        SchemaContext subctx = subschema.accept(new SchemaTranslator());
-        subctx.close();
-        defs.put(defName, subctx.schema());
-      }
-      unprocessed.put("$defs", defs);
-    }
     if (!schema.getUnprocessedProperties().isEmpty()) {
       for (Map.Entry<IJsonString, IJsonValue> entry :
           schema.getUnprocessedProperties().entrySet()) {
@@ -254,6 +242,18 @@ public class SchemaTranslator extends SchemaVisitor<SchemaTranslator.SchemaConte
           }
         }
       }
+    }
+    if (!schema.getDefinedSubschemas().isEmpty()) {
+      Map<String, org.everit.json.schema.Schema> defs = new HashMap<>();
+      for (Map.Entry<String, Schema> entry :
+          schema.getDefinedSubschemas().entrySet()) {
+        String defName = entry.getKey();
+        Schema subschema = entry.getValue();
+        SchemaContext subctx = subschema.accept(new SchemaTranslator());
+        subctx.close();
+        defs.put(defName, subctx.schema());
+      }
+      unprocessed.put("$defs", defs);
     }
     if (!unprocessed.isEmpty()) {
       ctx.schemaBuilder().unprocessedProperties(unprocessed);
